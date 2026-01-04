@@ -21,10 +21,8 @@
     <!-- Configuración de compilación -->
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IncludeSymbols>false</IncludeSymbols>
-    <NuspecFile>JonjubNet.Observability.nuspec</NuspecFile>
     <RootNamespace>JonjubNet.Observability</RootNamespace>
     <AssemblyName>JonjubNet.Observability</AssemblyName>
-    <NuspecProperties>version=$(Version);configuration=$(Configuration)</NuspecProperties>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     
     <!-- Configuración de documentación -->
@@ -102,12 +100,31 @@
     <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
   </PropertyGroup>
   
-  <!-- Target para eliminar dependencias de ProjectReference del .nuspec usando PowerShell -->
+  <!-- Target para eliminar dependencias de ProjectReference del .nuspec (multi-plataforma) -->
   <Target Name="RemoveProjectReferenceDependenciesFromNuspec" AfterTargets="GenerateNuspec" BeforeTargets="Pack">
     <PropertyGroup>
       <NuspecFile>$(IntermediateOutputPath)$(PackageId).nuspec</NuspecFile>
     </PropertyGroup>
-    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$content = Get-Content '$(NuspecFile)' -Raw; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Core&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.InfluxDB&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.OpenTelemetry&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Prometheus&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Shared&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; Set-Content -Path '$(NuspecFile)' -Value $content -NoNewline&quot;" Condition="Exists('$(NuspecFile)')" ContinueOnError="false" />
+    <!-- Usar sed en Linux/Mac y PowerShell en Windows -->
+    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Core&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
+          Condition="Exists('$(NuspecFile)') AND '$(OS)' != 'Windows_NT'" 
+          ContinueOnError="true" />
+    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.InfluxDB&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
+          Condition="Exists('$(NuspecFile)') AND '$(OS)' != 'Windows_NT'" 
+          ContinueOnError="true" />
+    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.OpenTelemetry&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
+          Condition="Exists('$(NuspecFile)') AND '$(OS)' != 'Windows_NT'" 
+          ContinueOnError="true" />
+    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Prometheus&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
+          Condition="Exists('$(NuspecFile)') AND '$(OS)' != 'Windows_NT'" 
+          ContinueOnError="true" />
+    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Shared&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
+          Condition="Exists('$(NuspecFile)') AND '$(OS)' != 'Windows_NT'" 
+          ContinueOnError="true" />
+    <!-- PowerShell para Windows -->
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$content = Get-Content '$(NuspecFile)' -Raw; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Core&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.InfluxDB&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.OpenTelemetry&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Prometheus&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Shared&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; Set-Content -Path '$(NuspecFile)' -Value $content -NoNewline&quot;" 
+          Condition="Exists('$(NuspecFile)') AND '$(OS)' == 'Windows_NT'" 
+          ContinueOnError="true" />
   </Target>
 
   <Target Name="CopyProjectReferencesToPackage">
