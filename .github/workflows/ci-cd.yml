@@ -1,0 +1,414 @@
+name: CI/CD Pipeline - JonjubNet.Observability
+
+on:
+  push:
+    branches: 
+      - main
+      - test
+      - 'feature/*'
+    tags: [ 'v*' ]
+  pull_request:
+    branches: 
+      - main
+      - test
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  PACKAGE_NAME: 'JonjubNet.Observability'
+  PROJECT_PATH: 'Presentation/JonjubNet.Observability/JonjubNet.Observability.csproj'
+  SOLUTION_PATH: 'JonjubNet.Observability.slnx'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Extract and set version
+      id: version
+      shell: bash
+      run: |
+        if [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+          # Extraer versión del tag (remover prefijo 'v')
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          echo "✅ Using version from tag: $VERSION"
+        elif [[ "${{ github.ref }}" == refs/heads/test ]]; then
+          # For test branch, add -test suffix
+          BASE_VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' ${{ env.PROJECT_PATH }} | head -1 || echo "1.0.0")
+          VERSION="${BASE_VERSION}-test.$(date +%Y%m%d%H%M%S)"
+          echo "✅ Using test version: $VERSION"
+        elif [[ "${{ github.ref }}" == refs/heads/feature/* ]] || [[ "${{ github.ref_name }}" == feature/* ]]; then
+          # For feature branches, add -feature suffix
+          BASE_VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' ${{ env.PROJECT_PATH }} | head -1 || echo "1.0.0")
+          BRANCH_NAME=$(echo "${{ github.ref_name }}" | sed 's/feature\///' | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]')
+          VERSION="${BASE_VERSION}-feature.${BRANCH_NAME}.$(date +%Y%m%d%H%M%S)"
+          echo "✅ Using feature version: $VERSION"
+        else
+          # Use version from csproj file (main branch)
+          VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' ${{ env.PROJECT_PATH }} | head -1)
+          if [ -z "$VERSION" ]; then
+            echo "❌ Error: Could not extract version from .csproj"
+            exit 1
+          fi
+          echo "✅ Using version from .csproj: $VERSION"
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "📦 Package version will be: $VERSION"
+
+    - name: Update .csproj version if tag exists
+      if: startsWith(github.ref, 'refs/tags/v')
+      shell: bash
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        if [ -z "$VERSION" ]; then
+          echo "❌ Error: Version is empty"
+          exit 1
+        fi
+        # Actualizar la versión en el .csproj (compatible con Linux)
+        sed -i "s/<Version>.*<\/Version>/<Version>$VERSION<\/Version>/" ${{ env.PROJECT_PATH }}
+        echo "✅ Updated .csproj version to $VERSION"
+        # Verificar el cambio
+        if grep -q "<Version>$VERSION</Version>" ${{ env.PROJECT_PATH }}; then
+          echo "✅ Version update verified in .csproj"
+        else
+          echo "❌ Warning: Could not verify version update"
+        fi
+
+    - name: Restore dependencies
+      # Restaurar usando la solución completa
+      run: |
+        if [ -f "${{ env.SOLUTION_PATH }}" ]; then
+          echo "✅ Restoring solution: ${{ env.SOLUTION_PATH }}"
+          dotnet restore ${{ env.SOLUTION_PATH }}
+        else
+          echo "⚠️ Solution file not found, restoring project directly"
+          dotnet restore ${{ env.PROJECT_PATH }}
+        fi
+
+    - name: Build
+      # Construir usando la solución completa
+      run: |
+        if [ -f "${{ env.SOLUTION_PATH }}" ]; then
+          echo "✅ Building solution: ${{ env.SOLUTION_PATH }}"
+          dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+        else
+          echo "⚠️ Solution file not found, building project directly"
+          dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+        fi
+
+    - name: Test
+      # Ejecutar tests si existen proyectos de test
+      run: |
+        if [ -d "Tests" ]; then
+          echo "✅ Running tests..."
+          find Tests -name "*.csproj" -type f | while read testproj; do
+            echo "🧪 Testing: $testproj"
+            dotnet test "$testproj" --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=$(basename $testproj .csproj).trx" || true
+          done
+        else
+          echo "⚠️ No Tests directory found, skipping tests"
+        fi
+
+    - name: Pack
+      # IMPORTANTE: Usar -p:Version y -p:PackageVersion para asegurar que la versión se aplique correctamente
+      # No usar --no-build para asegurar que todos los ensamblados estén disponibles
+      run: |
+        dotnet pack ${{ env.PROJECT_PATH }} \
+          --configuration Release \
+          --output ./packages \
+          -p:Version=${{ steps.version.outputs.version }} \
+          -p:PackageVersion=${{ steps.version.outputs.version }} \
+          --no-restore
+
+    - name: Upload packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-packages
+        path: ./packages/*.nupkg
+        retention-days: 30
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: Tests/**/*.trx
+        retention-days: 7
+        if-no-files-found: ignore
+
+  publish-nuget:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    # Solo publicar en test, main y tags (NO en feature branches)
+    # NOTA: NuGet.org solo se publica desde tags (v*), GitHub Packages desde test, main y tags
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || startsWith(github.ref, 'refs/tags/v'))
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Setup NuGet sources
+      run: |
+        dotnet nuget add source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json \
+          --name github \
+          --username ${{ github.repository_owner }} \
+          --password ${{ secrets.JONJUBNET_TOKEN }} \
+          --store-password-in-clear-text
+
+    - name: Download packages
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget-packages
+        path: ./packages
+
+    - name: Extract version from tag or project
+      id: version
+      shell: bash
+      run: |
+        if [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+        elif [[ "${{ github.ref }}" == refs/heads/test ]]; then
+          BASE_VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' ${{ env.PROJECT_PATH }} | head -1 || echo "1.0.0")
+          VERSION="${BASE_VERSION}-test.$(date +%Y%m%d%H%M%S)"
+        else
+          VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' ${{ env.PROJECT_PATH }} | head -1 || echo "1.0.0")
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Publish to NuGet.org (Production only)
+      if: startsWith(github.ref, 'refs/tags/v')
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      run: |
+        echo "🔍 Checking NuGet.org publication prerequisites..."
+        echo "📋 Tag: ${{ github.ref_name }}"
+        echo "📋 Extracted version: ${{ steps.version.outputs.version }}"
+        
+        if [ -z "$NUGET_API_KEY" ]; then
+          echo "⚠️ WARNING: NUGET_API_KEY secret is not set. Skipping NuGet.org publication."
+          echo "📝 To enable NuGet.org publication, configure the NUGET_API_KEY secret in repository settings."
+          exit 0
+        fi
+        
+        echo "✅ NUGET_API_KEY is configured. Proceeding with publication..."
+        echo "📦 Packages to publish:"
+        ls -lh ./packages/*.nupkg || echo "❌ No .nupkg files found in ./packages/"
+        
+        dotnet nuget push ./packages/*.nupkg \
+          --api-key "$NUGET_API_KEY" \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
+        
+        if [ $? -eq 0 ]; then
+          echo "✅ Successfully published to NuGet.org"
+        else
+          echo "❌ Failed to publish to NuGet.org"
+          exit 1
+        fi
+
+    - name: Publish to GitHub Packages (All branches)
+      env:
+        JONJUBNET_TOKEN: ${{ secrets.JONJUBNET_TOKEN }}
+      run: |
+        echo "🔍 Checking GitHub Packages publication prerequisites..."
+        if [ -z "$JONJUBNET_TOKEN" ]; then
+          echo "⚠️ WARNING: JONJUBNET_TOKEN secret is not set. Skipping GitHub Packages publication."
+          echo "📝 To enable GitHub Packages publication, configure the JONJUBNET_TOKEN secret in repository settings."
+          exit 0
+        fi
+        
+        echo "✅ JONJUBNET_TOKEN is configured. Proceeding with publication..."
+        echo "📦 Packages to publish:"
+        ls -lh ./packages/*.nupkg || echo "❌ No .nupkg files found in ./packages/"
+        
+        dotnet nuget push ./packages/*.nupkg \
+          --api-key "$JONJUBNET_TOKEN" \
+          --source github \
+          --skip-duplicate
+        
+        if [ $? -eq 0 ]; then
+          echo "✅ Successfully published to GitHub Packages"
+        else
+          echo "❌ Failed to publish to GitHub Packages"
+          exit 1
+        fi
+
+  create-release:
+    needs: [build-and-test, publish-nuget]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Extract version from tag
+      id: version
+      run: |
+        VERSION="${{ github.ref_name }}"
+        # Remove 'v' prefix if present
+        VERSION=${VERSION#v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Release version: $VERSION"
+
+    - name: Download packages
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget-packages
+        path: ./packages
+
+    - name: Check and create release
+      id: create-release
+      uses: actions/github-script@v7
+      continue-on-error: false
+      with:
+        github-token: ${{ secrets.JONJUBNET_TOKEN }}
+        script: |
+          const tagName = '${{ github.ref_name }}';
+          const version = '${{ steps.version.outputs.version }}';
+          const releaseBody = `## JonjubNet.Observability ${version}
+          
+          ### 📦 Packages
+          - **NuGet.org**: https://www.nuget.org/packages/JonjubNet.Observability/${version}
+          - **GitHub Packages**: https://github.com/${{ github.repository }}/packages
+          
+          ### 📋 Changes
+          See [README.md](https://github.com/${{ github.repository }}/blob/main/README.md) and [IMPLEMENTATION_GUIDE_UNIFIED.md](https://github.com/${{ github.repository }}/blob/main/Docs/IMPLEMENTATION_GUIDE_UNIFIED.md) for detailed documentation.
+          
+          ### 🚀 Installation
+          \`\`\`bash
+          dotnet add package JonjubNet.Observability --version ${version}
+          \`\`\`
+          
+          ### 📚 Documentation
+          - [README](https://github.com/${{ github.repository }}/blob/main/README.md)
+          - [Implementation Guide](https://github.com/${{ github.repository }}/blob/main/Docs/IMPLEMENTATION_GUIDE_UNIFIED.md)`;
+          
+          let releaseId;
+          let created = false;
+          
+          try {
+            // Verificar si el release ya existe
+            const existingRelease = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: tagName
+            });
+            
+            console.log(`✅ Release for tag ${tagName} already exists (ID: ${existingRelease.data.id}). Will upload assets if needed.`);
+            releaseId = existingRelease.data.id;
+            created = false;
+          } catch (error) {
+            if (error.status === 404) {
+              // El release no existe, crearlo
+              try {
+                const release = await github.rest.repos.createRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  tag_name: tagName,
+                  name: `Release ${version}`,
+                  body: releaseBody,
+                  draft: false,
+                  prerelease: false
+                });
+                
+                console.log(`✅ Created new release for tag ${tagName} (ID: ${release.data.id})`);
+                releaseId = release.data.id;
+                created = true;
+              } catch (createError) {
+                console.error('Error creating release:', createError);
+                throw createError;
+              }
+            } else {
+              console.error('Error checking for existing release:', error);
+              throw error;
+            }
+          }
+          
+          core.setOutput('release_id', releaseId);
+          core.setOutput('created', created.toString());
+
+    - name: Upload release assets
+      uses: actions/github-script@v7
+      continue-on-error: true
+      with:
+        github-token: ${{ secrets.JONJUBNET_TOKEN }}
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          const releaseId = ${{ steps.create-release.outputs.release_id }};
+          const packagesDir = './packages';
+          
+          if (!fs.existsSync(packagesDir)) {
+            console.log('Packages directory does not exist. Skipping asset upload.');
+            return;
+          }
+          
+          const files = fs.readdirSync(packagesDir)
+            .filter(file => file.endsWith('.nupkg'))
+            .map(file => path.join(packagesDir, file));
+          
+          if (files.length === 0) {
+            console.log('No .nupkg files found. Skipping asset upload.');
+            return;
+          }
+          
+          // Obtener assets existentes del release
+          const existingAssets = await github.rest.repos.listReleaseAssets({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: releaseId
+          });
+          
+          const existingAssetNames = new Set(existingAssets.data.map(asset => asset.name));
+          
+          for (const filePath of files) {
+            const fileName = path.basename(filePath);
+            
+            // Verificar si el asset ya existe
+            if (existingAssetNames.has(fileName)) {
+              console.log(`⏭️  Asset ${fileName} already exists. Skipping upload.`);
+              continue;
+            }
+            
+            try {
+              const fileContent = fs.readFileSync(filePath);
+              
+              await github.rest.repos.uploadReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: releaseId,
+                name: fileName,
+                data: fileContent
+              });
+              
+              console.log(`✅ Uploaded ${fileName} to release`);
+            } catch (uploadError) {
+              console.error(`❌ Error uploading ${fileName}:`, uploadError.message);
+              // Continuar con el siguiente archivo
+            }
+          }
+
