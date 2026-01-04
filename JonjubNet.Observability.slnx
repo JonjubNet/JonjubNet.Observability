@@ -1,0 +1,86 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Logging/" />
+  <Folder Name="/src/Logging/Core/">
+    <Project Path="Logging/Core/JonjubNet.Observability.Logging.Core/JonjubNet.Observability.Logging.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Logging/Infrastructure/">
+    <Project Path="Logging/Infrastructure/JonjubNet.Observability.Logging.Shared/JonjubNet.Observability.Logging.Shared.csproj" />
+    <Project Path="Logging/Infrastructure/JonjubNet.Observability.Logging.Console/JonjubNet.Observability.Logging.Console.csproj" />
+    <Project Path="Logging/Infrastructure/JonjubNet.Observability.Logging.Serilog/JonjubNet.Observability.Logging.Serilog.csproj" />
+    <Project Path="Logging/Infrastructure/JonjubNet.Observability.Logging.Kafka/JonjubNet.Observability.Logging.Kafka.csproj" />
+    <Project Path="Logging/Infrastructure/JonjubNet.Observability.Logging.Http/JonjubNet.Observability.Logging.Http.csproj" />
+    <Project Path="Logging/Infrastructure/JonjubNet.Observability.Logging.Elasticsearch/JonjubNet.Observability.Logging.Elasticsearch.csproj" />
+    <Project Path="Logging/Infrastructure/JonjubNet.Observability.Logging.OpenTelemetry/JonjubNet.Observability.Logging.OpenTelemetry.csproj" />
+  </Folder>
+  <Folder Name="/src/Metrics/" />
+  <Folder Name="/src/Metrics/Core/">
+    <Project Path="Metrics/Core/JonjubNet.Observability.Metrics.Core/JonjubNet.Observability.Metrics.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Metrics/Infrastructure/">
+    <Project Path="Metrics/Infrastructure/JonjubNet.Observability.Metrics.InfluxDB/JonjubNet.Observability.Metrics.InfluxDB.csproj" />
+    <Project Path="Metrics/Infrastructure/JonjubNet.Observability.Metrics.Kafka/JonjubNet.Observability.Metrics.Kafka.csproj" />
+    <Project Path="Metrics/Infrastructure/JonjubNet.Observability.Metrics.OpenTelemetry/JonjubNet.Observability.Metrics.OpenTelemetry.csproj" />
+    <Project Path="Metrics/Infrastructure/JonjubNet.Observability.Metrics.Prometheus/JonjubNet.Observability.Metrics.Prometheus.csproj" />
+    <Project Path="Metrics/Infrastructure/JonjubNet.Observability.Metrics.Shared/JonjubNet.Observability.Metrics.Shared.csproj" />
+    <Project Path="Metrics/Infrastructure/JonjubNet.Observability.Metrics.StatsD/JonjubNet.Observability.Metrics.StatsD.csproj" />
+    <Project Path="Metrics/Infrastructure/JonjubNet.Observability.Metrics.Elasticsearch/JonjubNet.Observability.Metrics.Elasticsearch.csproj" />
+    <Project Path="Metrics/Infrastructure/JonjubNet.Observability.Metrics.Http/JonjubNet.Observability.Metrics.Http.csproj" />
+  </Folder>
+  <Folder Name="/src/Presentation/">
+    <Project Path="Presentation/JonjubNet.Observability/JonjubNet.Observability.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="Shared/JonjubNet.Observability.Shared.Utils/JonjubNet.Observability.Shared.Utils.csproj" />
+    <Project Path="Shared/JonjubNet.Observability.Shared.Security/JonjubNet.Observability.Shared.Security.csproj" />
+    <Project Path="Shared/JonjubNet.Observability.Shared.Kafka/JonjubNet.Observability.Shared.Kafka.csproj" />
+    <Project Path="Shared/JonjubNet.Observability.Shared.OpenTelemetry/JonjubNet.Observability.Shared.OpenTelemetry.csproj" />
+    <Project Path="Shared/JonjubNet.Observability.Shared.Context/JonjubNet.Observability.Shared.Context.csproj" />
+  </Folder>
+  <Folder Name="/src/Tracing/" />
+  <Folder Name="/src/Tracing/Core/">
+    <Project Path="Tracing/Core/JonjubNet.Observability.Tracing.Core/JonjubNet.Observability.Tracing.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Tracing/Infrastructure/">
+    <Project Path="Tracing/Infrastructure/JonjubNet.Observability.Tracing.Shared/JonjubNet.Observability.Tracing.Shared.csproj" />
+    <Project Path="Tracing/Infrastructure/JonjubNet.Observability.Tracing.OpenTelemetry/JonjubNet.Observability.Tracing.OpenTelemetry.csproj" />
+    <Project Path="Tracing/Infrastructure/JonjubNet.Observability.Tracing.Kafka/JonjubNet.Observability.Tracing.Kafka.csproj" />
+    <Project Path="Tracing/Infrastructure/JonjubNet.Observability.Tracing.Elasticsearch/JonjubNet.Observability.Tracing.Elasticsearch.csproj" />
+    <Project Path="Tracing/Infrastructure/JonjubNet.Observability.Tracing.Http/JonjubNet.Observability.Tracing.Http.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Logging/">
+    <Project Path="Tests/Logging/JonjubNet.Observability.Logging.Core.Tests/JonjubNet.Observability.Logging.Core.Tests.csproj" />
+    <Project Path="Tests/Logging/JonjubNet.Observability.Logging.Shared.Tests/JonjubNet.Observability.Logging.Shared.Tests.csproj" />
+    <Project Path="Tests/Logging/JonjubNet.Observability.Logging.Console.Tests/JonjubNet.Observability.Logging.Console.Tests.csproj" />
+    <Project Path="Tests/Logging/JonjubNet.Observability.Logging.Serilog.Tests/JonjubNet.Observability.Logging.Serilog.Tests.csproj" />
+    <Project Path="Tests/Logging/JonjubNet.Observability.Logging.Kafka.Tests/JonjubNet.Observability.Logging.Kafka.Tests.csproj" />
+    <Project Path="Tests/Logging/JonjubNet.Observability.Logging.Http.Tests/JonjubNet.Observability.Logging.Http.Tests.csproj" />
+    <Project Path="Tests/Logging/JonjubNet.Observability.Logging.Elasticsearch.Tests/JonjubNet.Observability.Logging.Elasticsearch.Tests.csproj" />
+    <Project Path="Tests/Logging/JonjubNet.Observability.Logging.OpenTelemetry.Tests/JonjubNet.Observability.Logging.OpenTelemetry.Tests.csproj" />
+    <Project Path="Tests/Logging/JonjubNet.Observability.Logging.Integration.Tests/JonjubNet.Observability.Logging.Integration.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Metrics/">
+    <Project Path="Tests/Metrics/JonjubNet.Observability.Metrics.Benchmarks.Tests/JonjubNet.Observability.Metrics.Benchmarks.Tests.csproj" />
+    <Project Path="Tests/Metrics/JonjubNet.Observability.Metrics.Core.Tests/JonjubNet.Observability.Metrics.Core.Tests.csproj" />
+    <Project Path="Tests/Metrics/JonjubNet.Observability.Metrics.Integration.Tests/JonjubNet.Observability.Metrics.Integration.Tests.csproj" />
+    <Project Path="Tests/Metrics/JonjubNet.Observability.Metrics.Shared.Tests/JonjubNet.Observability.Metrics.Shared.Tests.csproj" />
+    <Project Path="Tests/Metrics/JonjubNet.Observability.Metrics.Prometheus.Tests/JonjubNet.Observability.Metrics.Prometheus.Tests.csproj" />
+    <Project Path="Tests/Metrics/JonjubNet.Observability.Metrics.InfluxDB.Tests/JonjubNet.Observability.Metrics.InfluxDB.Tests.csproj" />
+    <Project Path="Tests/Metrics/JonjubNet.Observability.Metrics.Kafka.Tests/JonjubNet.Observability.Metrics.Kafka.Tests.csproj" />
+    <Project Path="Tests/Metrics/JonjubNet.Observability.Metrics.OpenTelemetry.Tests/JonjubNet.Observability.Metrics.OpenTelemetry.Tests.csproj" />
+    <Project Path="Tests/Metrics/JonjubNet.Observability.Metrics.StatsD.Tests/JonjubNet.Observability.Metrics.StatsD.Tests.csproj" />
+    <Project Path="Tests/Metrics/JonjubNet.Observability.Metrics.Presentation.Tests/JonjubNet.Observability.Metrics.Presentation.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Tracing/">
+    <Project Path="Tests/Tracing/JonjubNet.Observability.Tracing.Core.Tests/JonjubNet.Observability.Tracing.Core.Tests.csproj" />
+    <Project Path="Tests/Tracing/JonjubNet.Observability.Tracing.Shared.Tests/JonjubNet.Observability.Tracing.Shared.Tests.csproj" />
+    <Project Path="Tests/Tracing/JonjubNet.Observability.Tracing.OpenTelemetry.Tests/JonjubNet.Observability.Tracing.OpenTelemetry.Tests.csproj" />
+    <Project Path="Tests/Tracing/JonjubNet.Observability.Tracing.Kafka.Tests/JonjubNet.Observability.Tracing.Kafka.Tests.csproj" />
+    <Project Path="Tests/Tracing/JonjubNet.Observability.Tracing.Integration.Tests/JonjubNet.Observability.Tracing.Integration.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Shared/">
+    <Project Path="Tests/Shared/JonjubNet.Observability.Shared.Context.Tests/JonjubNet.Observability.Shared.Context.Tests.csproj" />
+    <Project Path="Tests/Shared/JonjubNet.Observability.Shared.Kafka.Tests/JonjubNet.Observability.Shared.Kafka.Tests.csproj" />
+  </Folder>
+</Solution>

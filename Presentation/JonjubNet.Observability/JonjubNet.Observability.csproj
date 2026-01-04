@@ -1,0 +1,132 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    
+    <!-- NuGet Package Properties -->
+    <PackageId>JonjubNet.Observability</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>JonjubNet</Authors>
+    <Company>JonjubNet</Company>
+    <Description>Biblioteca de observabilidad para aplicaciones .NET con soporte completo para métricas (contadores, gauges, histogramas, timers, integración con Prometheus, OpenTelemetry, InfluxDB, Kafka, StatsD), logging estructurado (Console, Serilog, Kafka, HTTP, Elasticsearch, OpenTelemetry) y tracing distribuido (OpenTelemetry) con funcionalidades avanzadas de resiliencia, seguridad y configuración dinámica. Incluye componentes compartidos modulares (Utils, Security, Kafka, OpenTelemetry) para mejor separación de responsabilidades y paquetes NuGet optimizados.</Description>
+    <PackageTags>metrics;prometheus;monitoring;observability;counters;gauges;histograms;timers;logging;structured-logging;serilog;elasticsearch;kafka;opentelemetry;otlp;tracing;distributed-tracing;spans</PackageTags>
+    <PackageProjectUrl>https://github.com/jonjubnet/JonjubNet.Observability</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jonjubnet/JonjubNet.Observability</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+    
+    <!-- Configuración de compilación -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IncludeSymbols>false</IncludeSymbols>
+    <NuspecFile>JonjubNet.Observability.nuspec</NuspecFile>
+    <RootNamespace>JonjubNet.Observability</RootNamespace>
+    <AssemblyName>JonjubNet.Observability</AssemblyName>
+    <NuspecProperties>version=$(Version);configuration=$(Configuration)</NuspecProperties>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    
+    <!-- Configuración de documentación -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Hosting\LoggingBackgroundService.cs" />
+    <Compile Remove="Hosting\LoggingConfigWatcher.cs" />
+    <Compile Remove="Hosting\MetricsBackgroundService.cs" />
+    <Compile Remove="Hosting\MetricsConfigWatcher.cs" />
+    <Compile Remove="Hosting\MetricsHttpMiddlewareExporter.cs" />
+    <Compile Remove="Hosting\TracingBackgroundService.cs" />
+    <Compile Remove="Hosting\TracingConfigWatcher.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE" Pack="true" PackagePath="\" />
+    <None Include="appsettings.example.json" Pack="true" PackagePath="\" />
+    <None Include="icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Metrics\Core\JonjubNet.Observability.Metrics.Core\JonjubNet.Observability.Metrics.Core.csproj" />
+    <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.InfluxDB\JonjubNet.Observability.Metrics.InfluxDB.csproj" />
+    <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.OpenTelemetry\JonjubNet.Observability.Metrics.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.Prometheus\JonjubNet.Observability.Metrics.Prometheus.csproj" />
+    <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.Shared\JonjubNet.Observability.Metrics.Shared.csproj" />
+    <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.Elasticsearch\JonjubNet.Observability.Metrics.Elasticsearch.csproj" />
+    <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.Http\JonjubNet.Observability.Metrics.Http.csproj" />
+    <ProjectReference Include="..\..\Logging\Core\JonjubNet.Observability.Logging.Core\JonjubNet.Observability.Logging.Core.csproj" />
+    <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Shared\JonjubNet.Observability.Logging.Shared.csproj" />
+    <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Console\JonjubNet.Observability.Logging.Console.csproj" />
+    <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Serilog\JonjubNet.Observability.Logging.Serilog.csproj" />
+    <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Kafka\JonjubNet.Observability.Logging.Kafka.csproj" />
+    <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Http\JonjubNet.Observability.Logging.Http.csproj" />
+    <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Elasticsearch\JonjubNet.Observability.Logging.Elasticsearch.csproj" />
+    <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.OpenTelemetry\JonjubNet.Observability.Logging.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\..\Tracing\Core\JonjubNet.Observability.Tracing.Core\JonjubNet.Observability.Tracing.Core.csproj" />
+    <ProjectReference Include="..\..\Tracing\Infrastructure\JonjubNet.Observability.Tracing.Shared\JonjubNet.Observability.Tracing.Shared.csproj" />
+    <ProjectReference Include="..\..\Tracing\Infrastructure\JonjubNet.Observability.Tracing.OpenTelemetry\JonjubNet.Observability.Tracing.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\..\Tracing\Infrastructure\JonjubNet.Observability.Tracing.Kafka\JonjubNet.Observability.Tracing.Kafka.csproj" />
+    <ProjectReference Include="..\..\Tracing\Infrastructure\JonjubNet.Observability.Tracing.Elasticsearch\JonjubNet.Observability.Tracing.Elasticsearch.csproj" />
+    <ProjectReference Include="..\..\Tracing\Infrastructure\JonjubNet.Observability.Tracing.Http\JonjubNet.Observability.Tracing.Http.csproj" />
+    <ProjectReference Include="..\..\Shared\JonjubNet.Observability.Shared.Security\JonjubNet.Observability.Shared.Security.csproj" />
+    <ProjectReference Include="..\..\Shared\JonjubNet.Observability.Shared.Utils\JonjubNet.Observability.Shared.Utils.csproj" />
+    <ProjectReference Include="..\..\Shared\JonjubNet.Observability.Shared.Kafka\JonjubNet.Observability.Shared.Kafka.csproj" />
+    <ProjectReference Include="..\..\Shared\JonjubNet.Observability.Shared.OpenTelemetry\JonjubNet.Observability.Shared.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\..\Shared\JonjubNet.Observability.Shared.Context\JonjubNet.Observability.Shared.Context.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Hosting\Logging\" />
+    <Folder Include="Hosting\Metrics\" />
+    <Folder Include="Hosting\Tracing\" />
+  </ItemGroup>
+
+  <!-- Configurar para incluir ensamblados de proyectos referenciados en el paquete -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+    <!-- Evitar que NuGet genere dependencias de paquetes para ProjectReference -->
+    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
+  </PropertyGroup>
+  
+  <!-- Target para eliminar dependencias de ProjectReference del .nuspec usando PowerShell -->
+  <Target Name="RemoveProjectReferenceDependenciesFromNuspec" AfterTargets="GenerateNuspec" BeforeTargets="Pack">
+    <PropertyGroup>
+      <NuspecFile>$(IntermediateOutputPath)$(PackageId).nuspec</NuspecFile>
+    </PropertyGroup>
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$content = Get-Content '$(NuspecFile)' -Raw; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Core&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.InfluxDB&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.OpenTelemetry&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Prometheus&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Shared&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; Set-Content -Path '$(NuspecFile)' -Value $content -NoNewline&quot;" Condition="Exists('$(NuspecFile)')" ContinueOnError="false" />
+  </Target>
+
+  <Target Name="CopyProjectReferencesToPackage">
+    <!-- Obtener las rutas de salida de los proyectos referenciados -->
+    <MSBuild Projects="@(ProjectReference)" Targets="GetTargetPath" Properties="Configuration=$(Configuration);Platform=$(Platform);TargetFramework=$(TargetFramework)" SkipNonexistentTargets="true" ContinueOnError="true">
+      <Output TaskParameter="TargetOutputs" ItemName="_ReferencedProjectOutputs" />
+    </MSBuild>
+    
+    <!-- Agregar los ensamblados al paquete -->
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(_ReferencedProjectOutputs)" Condition="Exists('%(FullPath)') AND '%(Filename)' != '$(AssemblyName)'">
+        <PackagePath>lib/$(TargetFramework)/%(Filename)%(Extension)</PackagePath>
+      </TfmSpecificPackageFile>
+      <!-- Incluir también los archivos XML de documentación -->
+      <TfmSpecificPackageFile Include="@(_ReferencedProjectOutputs->'%(RootDir)%(Directory)%(Filename).xml')" Condition="Exists('%(RootDir)%(Directory)%(Filename).xml') AND '%(Filename)' != '$(AssemblyName)'">
+        <PackagePath>lib/$(TargetFramework)/%(Filename).xml</PackagePath>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+  </Target>
+
+
+</Project>
