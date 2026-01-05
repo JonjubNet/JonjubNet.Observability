@@ -135,8 +135,7 @@ jobs:
           --output ./packages \
           -p:Version=${{ steps.version.outputs.version }} \
           -p:PackageVersion=${{ steps.version.outputs.version }} \
-          --no-restore \
-          --no-build
+          --no-restore
         echo "✅ Package created. Verifying contents..."
         # Verificar que el paquete contiene los DLLs necesarios
         if [ -f "./packages/JonjubNet.Observability.${{ steps.version.outputs.version }}.nupkg" ]; then

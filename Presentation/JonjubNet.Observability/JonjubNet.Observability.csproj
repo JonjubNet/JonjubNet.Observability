@@ -104,7 +104,7 @@
   
   <!-- Target para incluir todos los DLLs de proyectos referenciados en el paquete -->
   <Target Name="CopyProjectReferencesToPackage" 
-          DependsOnTargets="ResolveProjectReferences;Build" 
+          DependsOnTargets="ResolveProjectReferences" 
           BeforeTargets="GenerateNuspec">
     <!-- Obtener las rutas de salida de los proyectos referenciados -->
     <MSBuild Projects="@(ProjectReference)" 
