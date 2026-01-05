@@ -8,7 +8,7 @@
     
     <!-- NuGet Package Properties -->
     <PackageId>JonjubNet.Observability</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>JonjubNet</Authors>
     <Company>JonjubNet</Company>
     <Description>Biblioteca de observabilidad para aplicaciones .NET con soporte completo para métricas (contadores, gauges, histogramas, timers, integración con Prometheus, OpenTelemetry, InfluxDB, Kafka, StatsD), logging estructurado (Console, Serilog, Kafka, HTTP, Elasticsearch, OpenTelemetry) y tracing distribuido (OpenTelemetry) con funcionalidades avanzadas de resiliencia, seguridad y configuración dinámica. Incluye componentes compartidos modulares (Utils, Security, Kafka, OpenTelemetry) para mejor separación de responsabilidades y paquetes NuGet optimizados.</Description>
@@ -98,7 +98,45 @@
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     <!-- Evitar que NuGet genere dependencias de paquetes para ProjectReference -->
     <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
+    <!-- Asegurar que los proyectos referenciados se compilen antes del pack -->
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);CopyProjectReferencesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
+  
+  <!-- Target para incluir todos los DLLs de proyectos referenciados en el paquete -->
+  <Target Name="CopyProjectReferencesToPackage" 
+          DependsOnTargets="ResolveProjectReferences;Build" 
+          BeforeTargets="GenerateNuspec">
+    <!-- Obtener las rutas de salida de los proyectos referenciados -->
+    <MSBuild Projects="@(ProjectReference)" 
+             Targets="GetTargetPath" 
+             Properties="Configuration=$(Configuration);Platform=$(Platform);TargetFramework=$(TargetFramework)" 
+             SkipNonexistentTargets="false" 
+             ContinueOnError="false">
+      <Output TaskParameter="TargetOutputs" ItemName="_ReferencedProjectOutputs" />
+    </MSBuild>
+    
+    <!-- Log para debugging -->
+    <Message Text="=== CopyProjectReferencesToPackage ===" Importance="high" />
+    <Message Text="Including referenced project outputs in package:" Importance="high" />
+    <Message Text="  - %(_ReferencedProjectOutputs.FullPath)" Importance="high" Condition="Exists('%(FullPath)')" />
+    
+    <!-- Agregar los ensamblados al paquete -->
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(_ReferencedProjectOutputs)" 
+                               Condition="Exists('%(FullPath)') AND '%(Filename)' != '$(AssemblyName)'">
+        <PackagePath>lib/$(TargetFramework)/%(Filename)%(Extension)</PackagePath>
+      </TfmSpecificPackageFile>
+      <!-- Incluir también los archivos XML de documentación -->
+      <TfmSpecificPackageFile Include="@(_ReferencedProjectOutputs->'%(RootDir)%(Directory)%(Filename).xml')" 
+                               Condition="Exists('%(RootDir)%(Directory)%(Filename).xml') AND '%(Filename)' != '$(AssemblyName)'">
+        <PackagePath>lib/$(TargetFramework)/%(Filename).xml</PackagePath>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+    
+    <!-- Verificar que se agregaron archivos -->
+    <Message Text="Files added to package:" Importance="high" />
+    <Message Text="  - %(TfmSpecificPackageFile.Identity) -> %(TfmSpecificPackageFile.PackagePath)" Importance="high" />
+  </Target>
   
   <!-- Target para eliminar dependencias de ProjectReference del .nuspec (multi-plataforma) -->
   <Target Name="RemoveProjectReferenceDependenciesFromNuspec" AfterTargets="GenerateNuspec" BeforeTargets="Pack">
@@ -106,43 +144,13 @@
       <NuspecFile>$(IntermediateOutputPath)$(PackageId).nuspec</NuspecFile>
     </PropertyGroup>
     <!-- Usar sed en Linux/Mac y PowerShell en Windows -->
-    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Core&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
-          Condition="Exists('$(NuspecFile)') AND '$(OS)' != 'Windows_NT'" 
-          ContinueOnError="true" />
-    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.InfluxDB&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
-          Condition="Exists('$(NuspecFile)') AND '$(OS)' != 'Windows_NT'" 
-          ContinueOnError="true" />
-    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.OpenTelemetry&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
-          Condition="Exists('$(NuspecFile)') AND '$(OS)' != 'Windows_NT'" 
-          ContinueOnError="true" />
-    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Prometheus&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
-          Condition="Exists('$(NuspecFile)') AND '$(OS)' != 'Windows_NT'" 
-          ContinueOnError="true" />
-    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Shared&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
+    <Exec Command="sed -i 's/&lt;dependency id=&quot;JonjubNet\.Observability\.[^&quot;]*&quot;[^&gt;]*&gt;[^&lt;]*&lt;\/dependency&gt;//g' '$(NuspecFile)'" 
           Condition="Exists('$(NuspecFile)') AND '$(OS)' != 'Windows_NT'" 
           ContinueOnError="true" />
     <!-- PowerShell para Windows -->
-    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$content = Get-Content '$(NuspecFile)' -Raw; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Core&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.InfluxDB&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.OpenTelemetry&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Prometheus&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.Metrics\.Shared&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; Set-Content -Path '$(NuspecFile)' -Value $content -NoNewline&quot;" 
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$content = Get-Content '$(NuspecFile)' -Raw; $content = $content -replace '&lt;dependency id=&quot;JonjubNet\.Observability\.[^&quot;]*&quot;[^&gt;]*&gt;[^&lt;]*&lt;/dependency&gt;', ''; Set-Content -Path '$(NuspecFile)' -Value $content -NoNewline&quot;" 
           Condition="Exists('$(NuspecFile)') AND '$(OS)' == 'Windows_NT'" 
           ContinueOnError="true" />
-  </Target>
-
-  <Target Name="CopyProjectReferencesToPackage">
-    <!-- Obtener las rutas de salida de los proyectos referenciados -->
-    <MSBuild Projects="@(ProjectReference)" Targets="GetTargetPath" Properties="Configuration=$(Configuration);Platform=$(Platform);TargetFramework=$(TargetFramework)" SkipNonexistentTargets="true" ContinueOnError="true">
-      <Output TaskParameter="TargetOutputs" ItemName="_ReferencedProjectOutputs" />
-    </MSBuild>
-    
-    <!-- Agregar los ensamblados al paquete -->
-    <ItemGroup>
-      <TfmSpecificPackageFile Include="@(_ReferencedProjectOutputs)" Condition="Exists('%(FullPath)') AND '%(Filename)' != '$(AssemblyName)'">
-        <PackagePath>lib/$(TargetFramework)/%(Filename)%(Extension)</PackagePath>
-      </TfmSpecificPackageFile>
-      <!-- Incluir también los archivos XML de documentación -->
-      <TfmSpecificPackageFile Include="@(_ReferencedProjectOutputs->'%(RootDir)%(Directory)%(Filename).xml')" Condition="Exists('%(RootDir)%(Directory)%(Filename).xml') AND '%(Filename)' != '$(AssemblyName)'">
-        <PackagePath>lib/$(TargetFramework)/%(Filename).xml</PackagePath>
-      </TfmSpecificPackageFile>
-    </ItemGroup>
   </Target>
 
 

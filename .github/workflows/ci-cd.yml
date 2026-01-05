@@ -120,15 +120,30 @@ jobs:
         fi
 
     - name: Pack
-      # IMPORTANTE: Usar -p:Version y -p:PackageVersion para asegurar que la versión se aplique correctamente
-      # No usar --no-build para asegurar que todos los ensamblados estén disponibles
+      # IMPORTANTE: Compilar primero para asegurar que todos los DLLs estén disponibles
+      # Luego hacer el pack con --no-build para usar los DLLs ya compilados
       run: |
+        echo "🔨 Building solution to ensure all DLLs are available..."
+        if [ -f "${{ env.SOLUTION_PATH }}" ]; then
+          dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+        else
+          dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+        fi
+        echo "📦 Packing NuGet package..."
         dotnet pack ${{ env.PROJECT_PATH }} \
           --configuration Release \
           --output ./packages \
           -p:Version=${{ steps.version.outputs.version }} \
           -p:PackageVersion=${{ steps.version.outputs.version }} \
-          --no-restore
+          --no-restore \
+          --no-build
+        echo "✅ Package created. Verifying contents..."
+        # Verificar que el paquete contiene los DLLs necesarios
+        if [ -f "./packages/JonjubNet.Observability.${{ steps.version.outputs.version }}.nupkg" ]; then
+          echo "📋 Package file exists"
+          # Listar contenido del paquete (es un ZIP)
+          unzip -l "./packages/JonjubNet.Observability.${{ steps.version.outputs.version }}.nupkg" | grep -E "\.dll$" | head -20 || echo "⚠️ Could not list package contents"
+        fi
 
     - name: Upload packages
       uses: actions/upload-artifact@v4
