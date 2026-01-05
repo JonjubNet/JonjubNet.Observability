@@ -8,7 +8,7 @@
     
     <!-- NuGet Package Properties -->
     <PackageId>JonjubNet.Observability</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>JonjubNet</Authors>
     <Company>JonjubNet</Company>
     <Description>Biblioteca de observabilidad para aplicaciones .NET con soporte completo para métricas (contadores, gauges, histogramas, timers, integración con Prometheus, OpenTelemetry, InfluxDB, Kafka, StatsD), logging estructurado (Console, Serilog, Kafka, HTTP, Elasticsearch, OpenTelemetry) y tracing distribuido (OpenTelemetry) con funcionalidades avanzadas de resiliencia, seguridad y configuración dinámica. Incluye componentes compartidos modulares (Utils, Security, Kafka, OpenTelemetry) para mejor separación de responsabilidades y paquetes NuGet optimizados.</Description>
