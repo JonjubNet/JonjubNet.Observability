@@ -8,7 +8,7 @@
     
     <!-- NuGet Package Properties -->
     <PackageId>JonjubNet.Observability</PackageId>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <Authors>JonjubNet</Authors>
     <Company>JonjubNet</Company>
     <Description>Biblioteca de observabilidad para aplicaciones .NET con soporte completo para métricas (contadores, gauges, histogramas, timers, integración con Prometheus, OpenTelemetry, InfluxDB, Kafka, StatsD), logging estructurado (Console, Serilog, Kafka, HTTP, Elasticsearch, OpenTelemetry) y tracing distribuido (OpenTelemetry) con funcionalidades avanzadas de resiliencia, seguridad y configuración dinámica. Incluye componentes compartidos modulares (Utils, Security, Kafka, OpenTelemetry) para mejor separación de responsabilidades y paquetes NuGet optimizados.</Description>
@@ -101,19 +101,24 @@
   </PropertyGroup>
   
   <!-- Target para incluir todos los DLLs de proyectos referenciados en el paquete -->
-  <!-- Este target se ejecuta durante el pack y compila los proyectos referenciados si es necesario -->
+  <!-- SOLUCIÓN: Compilar proyectos y obtener rutas de salida usando GetTargetPath con rutas absolutas -->
   <Target Name="CopyProjectReferencesToPackage" 
           BeforeTargets="GenerateNuspec"
           DependsOnTargets="ResolveProjectReferences">
     
-    <!-- Primero, asegurar que los proyectos referenciados estén compilados -->
+    <Message Text="=== CopyProjectReferencesToPackage ===" Importance="high" />
+    <Message Text="Configuration: $(Configuration)" Importance="high" />
+    <Message Text="TargetFramework: $(TargetFramework)" Importance="high" />
+    <Message Text="Project References: @(ProjectReference->Count())" Importance="high" />
+    
+    <!-- Asegurar que los proyectos referenciados estén compilados -->
     <MSBuild Projects="@(ProjectReference)" 
              Targets="Build" 
              Properties="Configuration=$(Configuration);Platform=$(Platform);TargetFramework=$(TargetFramework)" 
-             SkipNonexistentTargets="true" 
+             SkipNonexistentTargets="false" 
              ContinueOnError="false" />
     
-    <!-- Ahora obtener las rutas de salida de los proyectos referenciados -->
+    <!-- Obtener las rutas de salida de los proyectos referenciados -->
     <MSBuild Projects="@(ProjectReference)" 
              Targets="GetTargetPath" 
              Properties="Configuration=$(Configuration);Platform=$(Platform);TargetFramework=$(TargetFramework)" 
@@ -122,32 +127,38 @@
       <Output TaskParameter="TargetOutputs" ItemName="_ReferencedProjectOutputs" />
     </MSBuild>
     
-    <!-- Log para debugging -->
-    <Message Text="=== CopyProjectReferencesToPackage ===" Importance="high" />
-    <Message Text="Configuration: $(Configuration)" Importance="high" />
-    <Message Text="TargetFramework: $(TargetFramework)" Importance="high" />
-    <Message Text="Project References: @(ProjectReference->Count())" Importance="high" />
+    <Message Text="Referenced Outputs Found: @(_ReferencedProjectOutputs->Count())" Importance="high" />
     
-    <!-- Agregar los ensamblados al paquete -->
+    <!-- Convertir rutas relativas a absolutas y verificar existencia -->
     <ItemGroup>
-      <TfmSpecificPackageFile Include="@(_ReferencedProjectOutputs)" 
-                               Condition="Exists('%(FullPath)') AND '%(Filename)' != '$(AssemblyName)'">
+      <_ReferencedProjectOutputsWithFullPath Include="@(_ReferencedProjectOutputs)">
+        <FullPath>$([System.IO.Path]::GetFullPath('%(Identity)'))</FullPath>
+      </_ReferencedProjectOutputsWithFullPath>
+    </ItemGroup>
+    
+    <!-- Log cada DLL encontrado -->
+    <Message Text="DLL: %(_ReferencedProjectOutputsWithFullPath.FullPath) - Exists: $([System.IO.File]::Exists('%(FullPath)'))" Importance="high" />
+    
+    <!-- Agregar los ensamblados al paquete usando rutas absolutas -->
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="%(_ReferencedProjectOutputsWithFullPath.FullPath)" 
+                               Condition="$([System.IO.File]::Exists('%(FullPath)')) AND '%(Filename)' != '$(AssemblyName)' AND '%(Extension)' == '.dll'">
         <PackagePath>lib/$(TargetFramework)/%(Filename)%(Extension)</PackagePath>
       </TfmSpecificPackageFile>
       <!-- Incluir también los archivos XML de documentación -->
-      <TfmSpecificPackageFile Include="@(_ReferencedProjectOutputs->'%(RootDir)%(Directory)%(Filename).xml')" 
-                               Condition="Exists('%(RootDir)%(Directory)%(Filename).xml') AND '%(Filename)' != '$(AssemblyName)'">
+      <TfmSpecificPackageFile Include="%(_ReferencedProjectOutputsWithFullPath.FullPath->'%(RootDir)%(Directory)%(Filename).xml')" 
+                               Condition="$([System.IO.File]::Exists('%(RootDir)%(Directory)%(Filename).xml')) AND '%(Filename)' != '$(AssemblyName)'">
         <PackagePath>lib/$(TargetFramework)/%(Filename).xml</PackagePath>
       </TfmSpecificPackageFile>
     </ItemGroup>
     
     <!-- Log de resultados -->
-    <Message Text="DLLs found: @(_ReferencedProjectOutputs->Count())" Importance="high" />
-    <Message Text="DLLs to include: @(TfmSpecificPackageFile->Count())" Importance="high" />
-    <Message Text="  - %(TfmSpecificPackageFile.Identity) -> %(TfmSpecificPackageFile.PackagePath)" Importance="high" />
+    <Message Text="=== RESULTS ===" Importance="high" />
+    <Message Text="Total DLLs to include: @(TfmSpecificPackageFile->Count())" Importance="high" />
+    <Message Text="File: %(TfmSpecificPackageFile.Identity) -> %(TfmSpecificPackageFile.PackagePath)" Importance="high" />
     
     <!-- Error si no se encontraron DLLs -->
-    <Error Text="CRITICAL: No referenced project DLLs found to include in package! Expected DLLs from @(ProjectReference->Count()) projects but found @(TfmSpecificPackageFile->Count())." 
+    <Error Text="CRITICAL ERROR: No referenced project DLLs found to include in package! Expected DLLs from @(ProjectReference->Count()) projects but found @(TfmSpecificPackageFile->Count()). Check build output paths." 
            Condition="@(TfmSpecificPackageFile->Count()) == 0" />
   </Target>
   
