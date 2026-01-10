@@ -96,15 +96,21 @@ jobs:
         fi
 
     - name: Build
-      # Construir usando la solución completa
+      # Construir usando la solución completa - IMPORTANTE: Compilar todo para que los DLLs estén disponibles
       run: |
         if [ -f "${{ env.SOLUTION_PATH }}" ]; then
           echo "✅ Building solution: ${{ env.SOLUTION_PATH }}"
           dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
         else
           echo "⚠️ Solution file not found, building project directly"
+          # Si no hay solución, construir el proyecto principal que compilará todas sus dependencias
           dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
         fi
+        echo "✅ Build completed. Verifying DLLs..."
+        # Verificar que los DLLs principales estén compilados
+        find . -name "JonjubNet.Observability.Logging.Core.dll" -type f 2>/dev/null | head -1 || echo "⚠️ Logging.Core DLL not found"
+        find . -name "JonjubNet.Observability.Metrics.Core.dll" -type f 2>/dev/null | head -1 || echo "⚠️ Metrics.Core DLL not found"
+        find . -name "JonjubNet.Observability.Tracing.Core.dll" -type f 2>/dev/null | head -1 || echo "⚠️ Tracing.Core DLL not found"
 
     - name: Test
       # Ejecutar tests si existen proyectos de test
@@ -120,28 +126,28 @@ jobs:
         fi
 
     - name: Pack
-      # IMPORTANTE: Compilar primero para asegurar que todos los DLLs estén disponibles
-      # Luego hacer el pack con --no-build para usar los DLLs ya compilados
+      # IMPORTANTE: El Build ya compiló todo, ahora solo hacer el pack
+      # El target CopyProjectReferencesToPackage se ejecutará automáticamente durante el pack
       run: |
-        echo "🔨 Building solution to ensure all DLLs are available..."
-        if [ -f "${{ env.SOLUTION_PATH }}" ]; then
-          dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
-        else
-          dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
-        fi
         echo "📦 Packing NuGet package..."
+        echo "Version: ${{ steps.version.outputs.version }}"
         dotnet pack ${{ env.PROJECT_PATH }} \
           --configuration Release \
           --output ./packages \
           -p:Version=${{ steps.version.outputs.version }} \
           -p:PackageVersion=${{ steps.version.outputs.version }} \
-          --no-restore
+          --no-restore \
+          --verbosity detailed
         echo "✅ Package created. Verifying contents..."
         # Verificar que el paquete contiene los DLLs necesarios
         if [ -f "./packages/JonjubNet.Observability.${{ steps.version.outputs.version }}.nupkg" ]; then
           echo "📋 Package file exists"
           # Listar contenido del paquete (es un ZIP)
-          unzip -l "./packages/JonjubNet.Observability.${{ steps.version.outputs.version }}.nupkg" | grep -E "\.dll$" | head -20 || echo "⚠️ Could not list package contents"
+          echo "📦 DLLs in package:"
+          unzip -l "./packages/JonjubNet.Observability.${{ steps.version.outputs.version }}.nupkg" | grep -E "lib/net10\.0/.*\.dll$" | head -30 || echo "⚠️ Could not list package contents"
+        else
+          echo "❌ Package file not found!"
+          exit 1
         fi
 
     - name: Upload packages

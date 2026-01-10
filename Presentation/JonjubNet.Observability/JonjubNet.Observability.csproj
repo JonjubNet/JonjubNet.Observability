@@ -8,7 +8,7 @@
     
     <!-- NuGet Package Properties -->
     <PackageId>JonjubNet.Observability</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Authors>JonjubNet</Authors>
     <Company>JonjubNet</Company>
     <Description>Biblioteca de observabilidad para aplicaciones .NET con soporte completo para métricas (contadores, gauges, histogramas, timers, integración con Prometheus, OpenTelemetry, InfluxDB, Kafka, StatsD), logging estructurado (Console, Serilog, Kafka, HTTP, Elasticsearch, OpenTelemetry) y tracing distribuido (OpenTelemetry) con funcionalidades avanzadas de resiliencia, seguridad y configuración dinámica. Incluye componentes compartidos modulares (Utils, Security, Kafka, OpenTelemetry) para mejor separación de responsabilidades y paquetes NuGet optimizados.</Description>
@@ -104,7 +104,7 @@
   
   <!-- Target para incluir todos los DLLs de proyectos referenciados en el paquete -->
   <Target Name="CopyProjectReferencesToPackage" 
-          DependsOnTargets="ResolveProjectReferences" 
+          AfterTargets="Build"
           BeforeTargets="GenerateNuspec">
     <!-- Obtener las rutas de salida de los proyectos referenciados -->
     <MSBuild Projects="@(ProjectReference)" 
@@ -117,8 +117,11 @@
     
     <!-- Log para debugging -->
     <Message Text="=== CopyProjectReferencesToPackage ===" Importance="high" />
+    <Message Text="Configuration: $(Configuration)" Importance="high" />
+    <Message Text="TargetFramework: $(TargetFramework)" Importance="high" />
     <Message Text="Including referenced project outputs in package:" Importance="high" />
     <Message Text="  - %(_ReferencedProjectOutputs.FullPath)" Importance="high" Condition="Exists('%(FullPath)')" />
+    <Message Text="  - MISSING: %(_ReferencedProjectOutputs.FullPath)" Importance="high" Condition="!Exists('%(FullPath)')" />
     
     <!-- Agregar los ensamblados al paquete -->
     <ItemGroup>
@@ -136,6 +139,7 @@
     <!-- Verificar que se agregaron archivos -->
     <Message Text="Files added to package:" Importance="high" />
     <Message Text="  - %(TfmSpecificPackageFile.Identity) -> %(TfmSpecificPackageFile.PackagePath)" Importance="high" />
+    <Warning Text="No referenced project DLLs found to include in package!" Condition="@(TfmSpecificPackageFile->Count()) == 0" />
   </Target>
   
   <!-- Target para eliminar dependencias de ProjectReference del .nuspec (multi-plataforma) -->
