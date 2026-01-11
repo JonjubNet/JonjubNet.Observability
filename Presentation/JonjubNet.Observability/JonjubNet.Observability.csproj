@@ -101,7 +101,7 @@
   </PropertyGroup>
   
   <!-- Target para incluir todos los DLLs de proyectos referenciados en el paquete -->
-  <!-- SOLUCIÓN: Compilar proyectos y obtener rutas de salida usando GetTargetPath con rutas absolutas -->
+  <!-- ENFOQUE CORRECTO: Compilar proyectos, obtener rutas con GetTargetPath, y agregar al paquete -->
   <Target Name="CopyProjectReferencesToPackage" 
           BeforeTargets="GenerateNuspec"
           DependsOnTargets="ResolveProjectReferences">
@@ -129,25 +129,15 @@
     
     <Message Text="Referenced Outputs Found: @(_ReferencedProjectOutputs->Count())" Importance="high" />
     
-    <!-- Convertir rutas relativas a absolutas y verificar existencia -->
+    <!-- Agregar los DLLs al paquete (excluir el proyecto principal) -->
     <ItemGroup>
-      <_ReferencedProjectOutputsWithAbsolutePath Include="@(_ReferencedProjectOutputs)">
-        <AbsolutePath>$([System.IO.Path]::GetFullPath('%(Identity)'))</AbsolutePath>
-      </_ReferencedProjectOutputsWithAbsolutePath>
-    </ItemGroup>
-    
-    <!-- Log cada DLL encontrado -->
-    <Message Text="DLL: %(_ReferencedProjectOutputsWithAbsolutePath.AbsolutePath) - Exists: $([System.IO.File]::Exists('%(AbsolutePath)'))" Importance="high" />
-    
-    <!-- Agregar los ensamblados al paquete usando rutas absolutas -->
-    <ItemGroup>
-      <TfmSpecificPackageFile Include="%(_ReferencedProjectOutputsWithAbsolutePath.AbsolutePath)" 
-                               Condition="$([System.IO.File]::Exists('%(AbsolutePath)')) AND '%(Filename)' != '$(AssemblyName)' AND '%(Extension)' == '.dll'">
+      <TfmSpecificPackageFile Include="@(_ReferencedProjectOutputs)" 
+                               Condition="'%(Extension)' == '.dll' AND '%(Filename)' != '$(AssemblyName)'">
         <PackagePath>lib/$(TargetFramework)/%(Filename)%(Extension)</PackagePath>
       </TfmSpecificPackageFile>
       <!-- Incluir también los archivos XML de documentación -->
-      <TfmSpecificPackageFile Include="%(_ReferencedProjectOutputsWithAbsolutePath.AbsolutePath->'%(RootDir)%(Directory)%(Filename).xml')" 
-                               Condition="$([System.IO.File]::Exists('%(RootDir)%(Directory)%(Filename).xml')) AND '%(Filename)' != '$(AssemblyName)'">
+      <TfmSpecificPackageFile Include="@(_ReferencedProjectOutputs->'%(RootDir)%(Directory)%(Filename).xml')" 
+                               Condition="Exists('%(RootDir)%(Directory)%(Filename).xml') AND '%(Filename)' != '$(AssemblyName)'">
         <PackagePath>lib/$(TargetFramework)/%(Filename).xml</PackagePath>
       </TfmSpecificPackageFile>
     </ItemGroup>
