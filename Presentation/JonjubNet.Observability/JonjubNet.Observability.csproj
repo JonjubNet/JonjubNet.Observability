@@ -59,85 +59,86 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- CRÍTICO: PrivateAssets="All" evita que NuGet genere dependencias de paquetes para estos ProjectReference -->
+    <!-- CRÍTICO: IncludeAssets="none" evita completamente que NuGet genere dependencias de paquetes -->
     <!-- Los DLLs se incluyen directamente en el paquete mediante CopyProjectReferencesToPackage -->
     <ProjectReference Include="..\..\Metrics\Core\JonjubNet.Observability.Metrics.Core\JonjubNet.Observability.Metrics.Core.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.InfluxDB\JonjubNet.Observability.Metrics.InfluxDB.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.OpenTelemetry\JonjubNet.Observability.Metrics.OpenTelemetry.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.Prometheus\JonjubNet.Observability.Metrics.Prometheus.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.Shared\JonjubNet.Observability.Metrics.Shared.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.Elasticsearch\JonjubNet.Observability.Metrics.Elasticsearch.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.Http\JonjubNet.Observability.Metrics.Http.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Logging\Core\JonjubNet.Observability.Logging.Core\JonjubNet.Observability.Logging.Core.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Shared\JonjubNet.Observability.Logging.Shared.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Console\JonjubNet.Observability.Logging.Console.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Serilog\JonjubNet.Observability.Logging.Serilog.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Kafka\JonjubNet.Observability.Logging.Kafka.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Http\JonjubNet.Observability.Logging.Http.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.Elasticsearch\JonjubNet.Observability.Logging.Elasticsearch.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Logging\Infrastructure\JonjubNet.Observability.Logging.OpenTelemetry\JonjubNet.Observability.Logging.OpenTelemetry.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Tracing\Core\JonjubNet.Observability.Tracing.Core\JonjubNet.Observability.Tracing.Core.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Tracing\Infrastructure\JonjubNet.Observability.Tracing.Shared\JonjubNet.Observability.Tracing.Shared.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Tracing\Infrastructure\JonjubNet.Observability.Tracing.OpenTelemetry\JonjubNet.Observability.Tracing.OpenTelemetry.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Tracing\Infrastructure\JonjubNet.Observability.Tracing.Kafka\JonjubNet.Observability.Tracing.Kafka.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Tracing\Infrastructure\JonjubNet.Observability.Tracing.Elasticsearch\JonjubNet.Observability.Tracing.Elasticsearch.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Tracing\Infrastructure\JonjubNet.Observability.Tracing.Http\JonjubNet.Observability.Tracing.Http.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Shared\JonjubNet.Observability.Shared.Security\JonjubNet.Observability.Shared.Security.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Shared\JonjubNet.Observability.Shared.Utils\JonjubNet.Observability.Shared.Utils.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Shared\JonjubNet.Observability.Shared.Kafka\JonjubNet.Observability.Shared.Kafka.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Shared\JonjubNet.Observability.Shared.OpenTelemetry\JonjubNet.Observability.Shared.OpenTelemetry.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Shared\JonjubNet.Observability.Shared.Context\JonjubNet.Observability.Shared.Context.csproj">
-      <PrivateAssets>All</PrivateAssets>
+      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
   </ItemGroup>
 
