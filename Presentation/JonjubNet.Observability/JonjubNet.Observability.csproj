@@ -61,10 +61,10 @@
   <ItemGroup>
     <!-- CRÍTICO: IncludeAssets="none" evita completamente que NuGet genere dependencias de paquetes -->
     <!-- Los DLLs se incluyen directamente en el paquete mediante CopyProjectReferencesToPackage -->
-    <ProjectReference Include="..\..\Metrics\Core\JonjubNet.Observability.Metrics.Core\JonjubNet.Observability.Metrics.Core.csproj">
-      <IncludeAssets>none</IncludeAssets>
-      <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
-    </ProjectReference>
+      <ProjectReference Include="..\..\Metrics\Core\JonjubNet.Observability.Metrics.Core\JonjubNet.Observability.Metrics.Core.csproj">
+        <IncludeAssets>none</IncludeAssets>
+        <PrivateAssets>All</PrivateAssets>
+      </ProjectReference>
     <ProjectReference Include="..\..\Metrics\Infrastructure\JonjubNet.Observability.Metrics.InfluxDB\JonjubNet.Observability.Metrics.InfluxDB.csproj">
       <IncludeAssets>none</IncludeAssets><PrivateAssets>All</PrivateAssets>
     </ProjectReference>
